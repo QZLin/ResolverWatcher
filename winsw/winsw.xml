@@ -1,0 +1,10 @@
+<service>
+    <id>rswatcher</id>
+    <name>Resolve Watcher</name>
+    <description>Resolve Watcher Service</description>
+    <executable>ResolverWatcher.exe</executable>
+    <log mode="roll-by-size">
+        <sizeThreshold>1024</sizeThreshold>
+        <keepFiles>1</keepFiles>
+      </log>
+</service>
