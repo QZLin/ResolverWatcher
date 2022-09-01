@@ -47,7 +47,6 @@ FunctionEnd
 ;Installer Sections
 
 Section "Resolver Watcher" SecDummy
-    nsExec::Exec "$INSTDIR\winsw install"
     nsExec::Exec "net stop rswatcher"
     SetOutPath "$INSTDIR"
   
@@ -64,6 +63,7 @@ Section "Resolver Watcher" SecDummy
     ;Create uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
 
+    nsExec::Exec "$INSTDIR\winsw install"
 SectionEnd
 
 ;BeforeExit
