@@ -14,6 +14,7 @@ namespace ResolverWatcher
         const string SET_PRIMARY_DNS = "interface ip set dns name=\"{0}\" source=static validate=no address={1}";
         const string SET_DHCP = "interface ip set dns name=\"{0}\" source=dhcp";
         const string ADD_DNS = "add dns name=\"{0}\" validate=no address={1}";
+        const string FAKEDNS = "0.0.0.0";
 
         static string SLOT = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\ProgramData\\Resolver Watcher\\slot";
         static byte[] key = Convert.FromBase64String("HaB7u3f6gcL6lSWb4Eow9uzEfPE=");
@@ -114,12 +115,22 @@ namespace ResolverWatcher
             process.Start();
             process.WaitForExit();
         }
+        static bool NeedUpdateDns(NetworkInterface interface_, string target)
+        {
+            var info = interface_.GetIPProperties();
+            if (info.DnsAddresses.Count != 1)
+                return true;
+            if (info.DnsAddresses[0].ToString() != target)
+                return true;
+            return false;
+        }
         static void Lock()
         {
             foreach (NetworkInterface interface_ in NetworkInterface.GetAllNetworkInterfaces())
             {
                 Console.WriteLine($"DIABLED:{interface_.Name}");
-                NetSh(string.Format(SET_PRIMARY_DNS, interface_.Name, "0.0.0.0"));
+                if (NeedUpdateDns(interface_, FAKEDNS))
+                    NetSh(string.Format(SET_PRIMARY_DNS, interface_.Name, FAKEDNS));
             }
             if (!File.Exists(".lock"))
                 File.Create(".lock").Close();
