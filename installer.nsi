@@ -87,7 +87,7 @@ LangString DESC_SecDummy ${LANG_ENGLISH} "A test section."
 
 Section "Uninstall"
     nsExec::Exec "net stop rswatcher"
-    nsExec::Exec "winsw uninstall"
+    nsExec::Exec "$INSTDIR\winsw uninstall"
 
     Delete "$INSTDIR\Uninstall.exe"
     Delete "$INSTDIR\winsw.exe"
