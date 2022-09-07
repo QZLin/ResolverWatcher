@@ -64,11 +64,11 @@ Section "Resolver Watcher" SecDummy
     WriteUninstaller "$INSTDIR\Uninstall.exe"
 
     nsExec::Exec "$INSTDIR\winsw install"
+    nsExec::Exec "net start rswatcher"
 SectionEnd
 
 ;BeforeExit
 Function .onInstSuccess
-    nsExec::Exec "net start rswatcher"
 FunctionEnd
 
 ;--------------------------------
