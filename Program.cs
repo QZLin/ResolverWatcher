@@ -11,13 +11,17 @@ namespace ResolverWatcher
 {
     internal class Program
     {
-        const string SET_PRIMARY_DNS = "interface ip set dns name=\"{0}\" source=static validate=no address={1}";
-        const string SET_DHCP = "interface ip set dns name=\"{0}\" source=dhcp";
-        const string ADD_DNS = "add dns name=\"{0}\" validate=no address={1}";
+        // const string SET_PRIMARY_DNS = "interface ip set dns name=\"{0}\" source=static validate=no address={1}";
+        // const string SET_DHCP = "interface ip set dns name=\"{0}\" source=dhcp";
+        // const string ADD_DNS = "add dns name=\"{0}\" validate=no address={1}";
         const string FAKEDNS = "0.0.0.0";
+        static string SetPrimaryDns(string name, string addr) => $"interface ip set dns name=\"{name}\" source=static validate=no address={addr}";
+        static string SetDHCP(string name) => $"interface ip set dns name=\"{name}\" source=dhcp";
+        static string AddDns(string name, string addr) => $"add dns name=\"{name}\" validate=no address={addr}";
+
 
         static string SLOT = $"{Environment.GetEnvironmentVariable("SystemDrive")}\\ProgramData\\Resolver Watcher\\slot";
-        static byte[] key = Convert.FromBase64String("HaB7u3f6gcL6lSWb4Eow9uzEfPE=");
+        static byte[] key = Convert.FromBase64String("HaB7u3f6gcL6lSWb4Eow9uzEfPE="); // SHA-1 of password encoded in Base64
         public enum LockAction
         {
             UNLOCK, LOCK, EXIT, RESTART
@@ -25,7 +29,7 @@ namespace ResolverWatcher
 
         public static Queue<LockAction> commands;
         static int interval = 10000;
-        static int relockInterval = 600 * 1000;
+        static int relockInterval = 1800 * 1000;
         static class Status
         {
             public static bool locked = false;
@@ -49,7 +53,11 @@ namespace ResolverWatcher
             var tmpHash = new SHA1CryptoServiceProvider().ComputeHash(tmpSource);
             if (CompairBytes(key, tmpHash))
                 commands.Enqueue(LockAction.UNLOCK);
+            else
+                commands.Enqueue(LockAction.LOCK);
             File.WriteAllText(path, "");
+            try { File.Delete(path); }
+            catch (IOException) { }
         }
 
         static void RunReadInput()
@@ -94,9 +102,10 @@ namespace ResolverWatcher
                         new Thread(new ThreadStart(Lock)) { IsBackground = true }.Start();
                         Status.locked = true;
                         break;
+                    case LockAction.EXIT:
+                        return 0;
                 }
             }
-            return 0;
         }
         static void NetSh(string command)
         {
@@ -130,7 +139,7 @@ namespace ResolverWatcher
             {
                 Console.WriteLine($"DIABLED:{interface_.Name}");
                 if (NeedUpdateDns(interface_, FAKEDNS))
-                    NetSh(string.Format(SET_PRIMARY_DNS, interface_.Name, FAKEDNS));
+                    NetSh(SetPrimaryDns(interface_.Name, FAKEDNS));
             }
             if (!File.Exists(".lock"))
                 File.Create(".lock").Close();
@@ -141,7 +150,7 @@ namespace ResolverWatcher
             foreach (NetworkInterface interface_ in NetworkInterface.GetAllNetworkInterfaces())
             {
                 Console.WriteLine($"ENABLED:{interface_.Name}");
-                NetSh(string.Format(SET_DHCP, interface_.Name));
+                NetSh(SetDHCP(interface_.Name));
             }
             if (File.Exists(".lock"))
                 File.Delete(".lock");

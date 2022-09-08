@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build installer",
+            "label": "BuildInstaller",
             "type": "process",
             "command": "C:\\Program Files (x86)\\NSIS\\makensis.exe",
             "args": [
@@ -39,11 +39,24 @@
             ]
         },
         {
-            "label": "rebuild all",
+            "label": "DotnetBuildRelease",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration",
+                "Release"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "RebuildAll",
             "dependsOn": [
                 "Clean",
                 "BuildSolution",
-                "build installer"
+                "BuildInstaller"
             ],
             "dependsOrder": "sequence",
             "group": "build",
